@@ -306,7 +306,8 @@ begin
 
  if pos ('http://', edit1.Text) = 1 then prot := 'http://';
  if pos ('https://', edit1.Text) = 1 then prot := 'https://';
- if (pos ('https://', edit1.Text) = 0) and (pos ('https://', edit1.Text) = 0) then
+ 
+ if (pos ('https://', edit1.Text) = 0) and (pos ('http://', edit1.Text) = 0) then
    begin
      showmessage ('Нужно указать протокол https:// or http://');
      exit;
