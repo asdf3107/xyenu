@@ -115,7 +115,7 @@ type
 
 var
   Form1: TForm1;
-  sort, selectedUrl, source, old, dom, prot : string;
+  sort, selectedUrl, source, old, dom, prot, www : string;
   ans, curUrl, j, thread, maxThreads : integer;
   once, work: boolean;
   CS, CS2, CS4 : TCriticalSection;
@@ -306,17 +306,22 @@ begin
 
  if pos ('http://', edit1.Text) = 1 then prot := 'http://';
  if pos ('https://', edit1.Text) = 1 then prot := 'https://';
+ if (pos ('https://', edit1.Text) = 0) and (pos ('https://', edit1.Text) = 0) then
+   begin
+     showmessage ('Нужно указать протокол https:// or http://');
+     exit;
+   end;
+
+ if pos ('//www.', edit1.Text) <> 0 then www := 'www.';
 
  dom := edit1.Text;
  if dom[length (dom)] = '/' then dom := copy (dom, 1, length (dom)-1);
  dom := stringreplace (dom, prot, '', [rfReplaceAll]);
 
- links.Add(dom);
+
+
  links.Add(prot + dom);
- links.Add(prot + 'www.' + dom);
- links.Add(dom+'/');
- links.Add(prot + dom+'/');
- links.Add(prot + 'www.' + dom+'/');
+
 
 // showmessage (dom); exit;
 
@@ -904,11 +909,6 @@ begin
               link := copy (link, 1, pos('"', link)-1);
 
               if pos ('#', link) <> 0 then link := copy (link, 1, pos ('#', link)-1);
-              if link = '' then
-               begin
-                str := copy (str, pos('href="', str)+3, length (str));
-                continue;
-               end;
 
               if link = '' then
                  begin
@@ -918,7 +918,7 @@ begin
 
        //      try
                         //   "//link.ru"
-              if pos ('//', link) = 1 then link := 'http:' + link;
+              if pos ('//', link) = 1 then link := prot + link;
 
                         //   "/link"
               if pos ('/', link) = 1 then link := prot + dom + link;
@@ -995,7 +995,7 @@ begin
 
                end;
 
-                str := copy (str, pos('href="', str)+3, length (str));
+               str := copy (str, pos('href="', str)+3, length (str));
 
               except showmessage ('Код ошибки: Вот тута 3'); end;
 
