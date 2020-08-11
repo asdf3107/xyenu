@@ -13,11 +13,6 @@
   <priority>1.00</priority>
 </url>
 <url>
-  <loc>https://rtk-rus.ru/</loc>
-  <lastmod>2020-07-06T18:17:19+00:00</lastmod>
-  <priority>1.00</priority>
-</url>
-<url>
   <loc>https://rtk-rus.ru/about/</loc>
   <lastmod>2020-07-06T18:17:19+00:00</lastmod>
   <priority>1.00</priority>
@@ -54,11 +49,6 @@
 </url>
 <url>
   <loc>https://rtk-rus.ru/articles/</loc>
-  <lastmod>2020-07-06T18:17:19+00:00</lastmod>
-  <priority>1.00</priority>
-</url>
-<url>
-  <loc>https://rtk-rus.ru/avtobusy</loc>
   <lastmod>2020-07-06T18:17:19+00:00</lastmod>
   <priority>1.00</priority>
 </url>
@@ -129,11 +119,6 @@
 </url>
 <url>
   <loc>https://rtk-rus.ru/kompanii_zanimajushhiesja_passazhirskimi_perevozkami/</loc>
-  <lastmod>2020-07-06T18:17:19+00:00</lastmod>
-  <priority>1.00</priority>
-</url>
-<url>
-  <loc>https://rtk-rus.ru/mikroavtobusy</loc>
   <lastmod>2020-07-06T18:17:19+00:00</lastmod>
   <priority>1.00</priority>
 </url>

@@ -320,7 +320,8 @@ begin
 
 
 
- links.Add(prot + dom);
+ links.Add(prot + www + dom);
+ links.Add(prot + www + dom + '/');
 
 
 // showmessage (dom); exit;
@@ -915,13 +916,13 @@ begin
                     str := copy (str, pos('href="', str)+3, length (str));
                     continue;
                  end;
-
+                 
        //      try
                         //   "//link.ru"
               if pos ('//', link) = 1 then link := prot + link;
 
                         //   "/link"
-              if pos ('/', link) = 1 then link := prot + dom + link;
+              if pos ('/', link) = 1 then link := prot + www + dom + link;
 
                         //   "http://domen.ru/link"
               if (pos ('http://', link) = 1) or (pos ('https://', link) = 1) then
@@ -940,8 +941,6 @@ begin
                  else
                      begin
                        link := prot + dom + '/' + link;
-                       link2 := prot + 'www.' + dom + '/' + link;
-
                      end;
                end;
 
@@ -954,7 +953,7 @@ begin
              CS4.Enter;  // ====++++++++++++++----------+++++++++
 
              try
-              if (links.IndexOf(link) = -1) or (links.IndexOf(link2) = -1) then
+              if (links.IndexOf(link) = -1) and (links.IndexOf(link + '/') = -1) then
                begin
                      try
                       Item := Form1.ListView1.Items.Add;
@@ -965,20 +964,17 @@ begin
                        begin
                           Item.Caption := link;
                           Item.SubItems.Add('pending');
+                          if link[length(link)] <> '/' then links.Add(link + '/');
                           links.Add(link);
-                          links.Add(link2);
-                          links.Add(link+'/');
-                          links.Add(link2+'/');
                        end
                       else
                        begin
-                          if link = '' then link := link + 'empt';
+//                          if link = '' then link := link + 'empt';
                           Item.Caption := link;
                           Item.SubItems.Add('skip external');
+                          if link[length(link)] <> '/' then links.Add(link + '/');
                           links.Add(link);
-                          links.Add(link2);
-                          links.Add(link+'/');
-                          links.Add(link2+'/');
+ 
                        end;
 
                       Item.SubItems.Add ('');   //  тип
