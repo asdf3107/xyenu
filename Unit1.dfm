@@ -303,7 +303,6 @@ object Form1: TForm1
     Lines.Strings = (
       'Memo1')
     TabOrder = 3
-    Visible = False
   end
   object IdHTTP1: TIdHTTP
     IOHandler = IdSSLIOHandlerSocketOpenSSL1

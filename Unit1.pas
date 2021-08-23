@@ -416,6 +416,8 @@ begin
       label2.Caption := inttostr (j);
       inc(j);
       application.ProcessMessages;
+
+      ListItem.SubItems.Add('pending');
     end;
     sl.Free;
     CloseFile(F);
@@ -476,11 +478,11 @@ var
   MainThread: THandle;
 begin
 
-  if yearof (now) = 2021 then
-   begin
-    showmessage ('Впесду тут работать.. Я увольняюсь.');
-    Application.Terminate;
-   end;
+//  if yearof (now) = 2021 then
+//   begin
+//    showmessage ('Впесду тут работать.. Я увольняюсь.');
+//    Application.Terminate;
+//   end;
 
   sort := 'asc';
 
@@ -814,8 +816,10 @@ begin
 
     if url <> '' then
       begin
+        if pos ('http', url) = 0 then url := 'http://' + url;
 
-    //    showmessage (inttostr (thread) + ' поток, урл: ' + url);
+//        showmessage (inttostr (thread) + ' поток, урл: ' + url);
+
         err := '';
         try
           err := '';
@@ -882,6 +886,7 @@ begin
            end;
         end;
 
+{         // пока закрыли    только сейчас
         CS2.Enter;   //******************=============
 
         try
@@ -900,8 +905,10 @@ begin
         except showmessage ('Код ошибки: Попался 2'); end;
 
         CS2.Leave;  //******************=========
+ }
 
-          // memo1.text := str;
+ // только сейчас
+
 
           //    str := copy (str, pos('href="', str)+3, length (str));
 
@@ -919,6 +926,7 @@ begin
                  end;
                  
        //      try
+       {
                         //   "//link.ru"
               if pos ('//', link) = 1 then link := prot + link;
 
@@ -944,6 +952,8 @@ begin
                        link := prot + dom + '/' + link;
                      end;
                end;
+
+
 
 //                l := -1; l2 := -1;
 //                l := ;
@@ -997,6 +1007,11 @@ begin
               except showmessage ('Код ошибки: Вот тута 3'); end;
 
               CS4.Leave;     // ====++++++++++++++----------+++++++++
+               }
+
+              form1.memo1.lines.Add(link);
+              str := copy (str, pos('href="', str)+3, length (str));
+
 
             end;   //   конец парса ссылки
 
@@ -1005,6 +1020,8 @@ begin
 
 
       end;  //   end of  if url <> ''
+
+     break;
 
   end;   //   end of while work
 

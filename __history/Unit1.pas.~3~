@@ -1,0 +1,1030 @@
+unit Unit1;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Grids, IdBaseComponent, IdComponent,
+  IdTCPConnection, IdTCPClient, IdHTTP, Vcl.ComCtrls, Vcl.StdCtrls, Vcl.ExtCtrls,
+  Vcl.Menus, Vcl.Buttons, SyncObjs, IdIOHandler, IdIOHandlerSocket,
+  IdIOHandlerStack, IdSSL, IdSSLOpenSSL, Math, DateUtils, ShellApi, clipbrd, IdURI;
+
+type
+  TForm1 = class(TForm)
+    IdHTTP1: TIdHTTP;
+    ListView1: TListView;
+    MainMenu1: TMainMenu;
+    N1: TMenuItem;
+    N2: TMenuItem;
+    N3: TMenuItem;
+    N4: TMenuItem;
+    N5: TMenuItem;
+    IdSSLIOHandlerSocketOpenSSL1: TIdSSLIOHandlerSocketOpenSSL;
+    Panel1: TPanel;
+    Edit1: TEdit;
+    Button1: TButton;
+    Button2: TButton;
+    Button3: TButton;
+    Button4: TButton;
+    Timer1: TTimer;
+    N6: TMenuItem;
+    N7: TMenuItem;
+    Button6: TButton;
+    PopupMenu1: TPopupMenu;
+    URL1: TMenuItem;
+    URL2: TMenuItem;
+    N8: TMenuItem;
+    N9: TMenuItem;
+    Panel2: TPanel;
+    StaticText1: TStaticText;
+    Label1: TLabel;
+    StaticText2: TStaticText;
+    Label2: TLabel;
+    StaticText3: TStaticText;
+    Label3: TLabel;
+    StaticText4: TStaticText;
+    Label4: TLabel;
+    Button5: TButton;
+    Memo1: TMemo;
+    Button7: TButton;
+    Button8: TButton;
+    N10: TMenuItem;
+    Edit2: TEdit;
+    Button9: TButton;
+    Button10: TButton;
+    N11: TMenuItem;
+    N12: TMenuItem;
+    procedure N2Click(Sender: TObject);
+    procedure N5Click(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
+    procedure ListView1AdvancedCustomDrawItem(Sender: TCustomListView;
+      Item: TListItem; State: TCustomDrawState; Stage: TCustomDrawStage;
+      var DefaultDraw: Boolean);
+    procedure ListView1AdvancedCustomDrawSubItem(Sender: TCustomListView;
+      Item: TListItem; SubItem: Integer; State: TCustomDrawState;
+      Stage: TCustomDrawStage; var DefaultDraw: Boolean);
+    procedure FormCreate(Sender: TObject);
+    procedure Button3Click(Sender: TObject);
+    procedure Button5Click(Sender: TObject);
+    procedure Timer1Timer(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure N6Click(Sender: TObject);
+    procedure N7Click(Sender: TObject);
+    procedure Button6Click(Sender: TObject);
+    procedure N8Click(Sender: TObject);
+    procedure URL2Click(Sender: TObject);
+    procedure ListView1MouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure URL1Click(Sender: TObject);
+    procedure ListView1DblClick(Sender: TObject);
+    procedure Button4Click(Sender: TObject);
+    procedure ListView1ColumnClick(Sender: TObject; Column: TListColumn);
+    procedure N9Click(Sender: TObject);
+    procedure Button7Click(Sender: TObject);
+    procedure N10Click(Sender: TObject);
+    procedure Button8Click(Sender: TObject);
+    procedure ListView1Click(Sender: TObject);
+    procedure Button9Click(Sender: TObject);
+    procedure Button10Click(Sender: TObject);
+    procedure N11Click(Sender: TObject);
+    procedure N12Click(Sender: TObject);
+  private
+    procedure MakeReport;
+    procedure ReportRequest;
+    procedure MakeSitemap;
+    { Private declarations }
+  public
+    function GetColor(i: integer): TColor;
+    function CheckUrl (AStr : string) : string;
+    { Public declarations }
+
+
+  end;
+
+  type
+    TNewThread = class(TThread)
+    private
+    procedure AddNewLink;
+    procedure AddSubitems;
+      { Private declarations }
+    protected
+      procedure Execute; override;
+    end;
+
+
+var
+  Form1: TForm1;
+  sort, selectedUrl, source, old, dom, prot, www : string;
+  ans, curUrl, j, thread, maxThreads : integer;
+  once, work: boolean;
+  CS, CS2, CS4 : TCriticalSection;
+  tTime, tTime2 : TDateTime;
+  links : TStringLIst;
+  IdHandler : TIdSSLIOHandlerSocketOpenSSL;
+  NewThread: TNewThread;
+  Item : TListItem;
+
+implementation
+
+{$R *.dfm}
+
+uses Unit3, Unit4, Unit5;
+
+
+procedure TForm1.MakeSitemap;
+var F: TextFile;
+   i: Integer;
+   strl : TStringList;
+begin
+
+  strl := TStringList.Create;
+  AssignFile(F, 'sitemap.xml');
+  Rewrite(F);
+  WriteLn(F, '<?xml version="1.0" encoding="UTF-8"?>');
+  WriteLn(F, '<urlset');
+  WriteLn(F, '      xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"');
+  WriteLn(F, '      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"');
+  WriteLn(F, '      xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9');
+  WriteLn(F, '            http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">');
+  WriteLn(F, '<!-- created with Vanik''s Xueny Link Crawler -->');
+  WriteLn(F, '');
+  WriteLn(F, '');
+
+  strl.Sorted := false;
+  for i := 0 to ListView1.items.count-1 do
+    begin
+      if (ListView1.Items[i].subitems[0] = 'ok') and (ListView1.Items[i].subitems[1] = 'text/html') then
+        begin
+          strl.Add(ListView1.Items[i].Caption);
+        end;
+    end;
+  strl.Sorted := true;
+
+  for i := 0 to strl.Count-1 do
+    begin
+      WriteLn(F, '<url>');
+      WriteLn(F, '  <loc>' + strl[i] + '</loc>');
+      WriteLn(F, '  <lastmod>2020-07-06T18:17:19+00:00</lastmod>');
+      WriteLn(F, '  <priority>1.00</priority>');
+      WriteLn(F, '</url>');
+    end;
+
+
+
+  WriteLn(F, '');
+  WriteLn(F, '');
+  WriteLn(F, '</urlset>');
+
+  CloseFile(F);
+
+  beep;
+  showmessage ('Done!');
+end;
+
+procedure TForm1.MakeReport;
+var F: TextFile;
+  errs, ok, ext, i: Integer;
+begin
+
+  for i := 0 to ListView1.items.count-1 do
+    begin
+      if ListView1.Items[i].subitems[0] = 'skip external' then inc(ext) ;
+      if ListView1.Items[i].subitems[0] = 'ok' then inc(ok);
+      if ListView1.Items[i].subitems[0] = 'not found' then inc(errs);
+    end;
+
+
+  AssignFile(F, 'report.html');
+  Rewrite(F);
+
+  WriteLn(F, '<h1>Отчет по сайту ' + edit1.text + '</h1>');
+  WriteLn(F, '<p>Рабочих ссылок: ' + inttostr (ok) + '</p>');
+  WriteLn(F, '<p>Битых ссылок: ' + inttostr (errs) + '</p>');
+  WriteLn(F, '<p>Внешних ссылок: ' + inttostr (ext) + '</p>');
+
+  CloseFile(F);
+
+  ShellExecute(handle, 'open', PChar(ExtractFilePath(paramstr(0)) + 'report.html'), nil, nil, SW_NORMAL );
+
+end;
+
+function TForm1.CheckUrl (AStr : string) : string;
+const
+  Conversion = ['а'..'я', ' '];
+var
+  Sp, Rp: PChar;
+  i : integer;
+begin
+
+  if (pos ('%D', AStr) <> 0) or (pos ('%B', AStr) <> 0) or (pos ('%8', AStr) <> 0) or
+     (pos ('%9', AStr) <> 0) or (pos ('%2', AStr) <> 0) or (pos ('%3', AStr) <> 0) or
+     (pos ('%E', AStr) <> 0) or (pos ('%A', AStr) <> 0) then exit;
+
+
+  AStr := ansilowercase(AStr);
+
+  for I := 1 to length(AStr) do
+  begin
+    if AStr[i] in Conversion then
+      begin
+        result := 'enc';
+        exit;
+      end
+  end;
+
+
+end;
+
+function TForm1.GetColor (i : integer) : TColor;
+begin
+
+
+  result := clGray;
+
+  if ListView1.Items[i].SubItems.Count = 0 then exit;
+
+  if ListView1.Items[i].subitems[0] = 'busy' then result := clBlack;
+  if ListView1.Items[i].subitems[0] = 'skip external' then result := clBlue;
+  if ListView1.Items[i].subitems[0] = 'ok' then result := clGreen;
+  if ListView1.Items[i].subitems[0] = 'not found' then result := clRed;
+
+
+end;
+
+function CustomSortProc(Item1, Item2: TListItem; ParamSort: integer): integer; stdcall;
+begin
+
+  if ParamSort=0 then
+   begin
+    if sort = 'asc' then Result := CompareText(Item1.Caption,Item2.Caption)
+        else Result := -CompareText(Item1.Caption,Item2.Caption);
+   end
+  else
+   begin
+    if Item1.SubItems.Count>ParamSort-1 then
+      begin
+        if Item2.SubItems.Count>ParamSort-1 then
+         begin
+          if sort = 'asc' then Result := CompareText(Item1.SubItems[ParamSort-1],Item2.SubItems[ParamSort-1])
+              else Result := -CompareText(Item1.SubItems[ParamSort-1],Item2.SubItems[ParamSort-1]);
+         end
+        else
+          begin
+           if sort = 'asc' then Result:= 1 else Result:= -1;
+          end;
+      end
+    else
+      begin
+        if sort = 'asc' then Result:= -1 else Result:= 1;
+      end;
+   end;
+end;
+
+procedure TForm1.Button10Click(Sender: TObject);
+begin
+ NewThread := TNewThread.Create(true);
+ NewThread.FreeOnTerminate := True; // Уничтожить поток после завершения работы
+ NewThread.Resume;
+end;
+
+procedure TForm1.Button1Click(Sender: TObject);
+begin
+ listView1.SetFocus;
+ curUrl := 0;
+
+ Item := ListView1.Items.Add;
+ Item.Caption := edit1.text;
+ Item.SubItems.Add('pending');
+ Item.SubItems.Add('');
+ Item.SubItems.Add('');
+ Item.SubItems.Add('');
+ Item.SubItems.Add('');
+ Item.SubItems.Add('');
+ Item.SubItems.Add('');
+ Item.SubItems.Add('0');
+
+ if pos ('http://', edit1.Text) = 1 then prot := 'http://';
+ if pos ('https://', edit1.Text) = 1 then prot := 'https://';
+ 
+ if (pos ('https://', edit1.Text) = 0) and (pos ('http://', edit1.Text) = 0) then
+   begin
+     showmessage ('Нужно указать протокол https:// or http://');
+     exit;
+   end;
+
+ if pos ('//www.', edit1.Text) <> 0 then www := 'www.';
+
+ dom := edit1.Text;
+ if dom[length (dom)] = '/' then dom := copy (dom, 1, length (dom)-1);
+ dom := stringreplace (dom, prot, '', [rfReplaceAll]);
+
+
+
+ links.Add(prot + www + dom);
+ links.Add(prot + www + dom + '/');
+
+
+// showmessage (dom); exit;
+
+// Button3.Enabled := false; Button4.Enabled := false; Button6.Enabled := false;
+
+ maxThreads := Form3.TrackBar1.Position;
+ maxThreads := 1;
+ work := true;
+
+ tTime := now;
+ Timer1.Enabled := true;
+
+// NewThread := TNewThread.Create(true);
+// NewThread.FreeOnTerminate := True; // Уничтожить поток после завершения работы
+// NewThread.Resume;
+
+ for thread := 1 to maxThreads do
+  begin
+      NewThread := TNewThread.Create(true);
+      NewThread.FreeOnTerminate := True; // Уничтожить поток после завершения работы
+      NewThread.Resume;
+  //    sleep (1000);// Запуск потока
+   //   NewThread.OnTerminate := TNewThread_ThreadTerminate;
+  end;
+
+
+ thread := maxThreads;
+ Label1.caption := inttostr (thread);
+end;
+
+procedure TForm1.Button2Click(Sender: TObject);
+begin
+
+  work := false;
+  timer1.Enabled := false;
+  Form1.button3.enabled := true; Form1.button4.enabled := true; Form1.button6.enabled := true;
+
+
+end;
+
+
+
+procedure TForm1.Button3Click(Sender: TObject);
+var
+  X, J : Integer;
+  F : TextFile;
+  S : String;
+begin
+  AssignFile(F, 'out.csv');
+  Rewrite(F);
+  for X := 0 to ListView1.Items.Count - 1 do
+  begin
+    S := ListView1.Items.Item[X].Caption + '|';
+    for J := 0 to ListView1.Items.Item[X].SubItems.Count - 1 do
+      S := S + ListView1.Items.Item[X].SubItems.Strings[J] + '|';
+    SetLength(S, Length(S) - 1);
+    WriteLn(F, S);
+  end;
+  CloseFile(F);
+  listView1.SetFocus;
+
+
+end;
+
+
+procedure TForm1.Button4Click(Sender: TObject);
+var
+  I, j  : Integer;
+  F  : TextFile;
+  S  : String;
+  sl : TStringList;
+  ListItem : TListItem;
+begin
+  if FileExists('out.csv') then
+  begin
+    j := 0;
+    sl := TStringList.Create;
+    sl.Delimiter:= '|';
+    sl.StrictDelimiter := True;
+    AssignFile(F, 'out.csv');
+    Reset(F);
+    while not Eof(F) do
+    begin
+      ReadLn(F, S);
+      sl.DelimitedText := S;
+      ListItem := ListView1.Items.Add;
+      ListItem.Caption := sl.Strings[0];
+      for I := 1 to sl.Count - 1 do
+        ListItem.SubItems.Add(sl.Strings[I]);
+      label2.Caption := inttostr (j);
+      inc(j);
+      application.ProcessMessages;
+
+      ListItem.SubItems.Add('pending');
+    end;
+    sl.Free;
+    CloseFile(F);
+  end;
+
+ links.LoadFromFile('links.txt');
+
+ listView1.SetFocus;
+
+end;
+
+procedure TForm1.Button5Click(Sender: TObject);
+var
+ http : TIdHTTP;
+ s : WideString;
+begin
+
+  showmessage (CheckUrl('https://ru.wikipedia.org/w/index.php?title=%D0%A1%D0%BB%D1%83%D0%B6%D0%B5%D0%B1%D0%BD%D0%B0%D1%8F:%D0%A1%D0%B2%D0%B5%D0%B6%D0%B8%D0%B5_%D0%BF%D1%80%D0%B0%D0%B2%D0%BA%D0%B8&amp;feed=atom'));
+
+//  memo1.Lines.add (TIdURI.URLEncode('https://ru.wikipedia.org/wiki/%D0%A1%D0%BB%D1%83%D0%B6%D0%B5%D0%B1%D0%BD%D0%B0%D1%8F:%D0%9F%D0%BE%D0%B8%D1%81%D0%BA'));
+
+
+ exit;
+
+
+   MakeReport;
+
+
+end;
+
+procedure TForm1.Button6Click(Sender: TObject);
+begin
+   Listview1.Clear;
+end;
+
+procedure TForm1.Button7Click(Sender: TObject);
+begin
+  Form5.ShowModal;
+end;
+
+procedure TForm1.Button8Click(Sender: TObject);
+begin
+ listview1.Items[strtoint (Edit2.text)].Delete;
+end;
+
+procedure TForm1.Button9Click(Sender: TObject);
+begin
+  links.SaveToFile('links.txt');
+end;
+
+procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+   exitProcess(0);
+end;
+
+procedure TForm1.FormCreate(Sender: TObject);
+var
+  MainThread: THandle;
+begin
+
+//  if yearof (now) = 2021 then
+//   begin
+//    showmessage ('Впесду тут работать.. Я увольняюсь.');
+//    Application.Terminate;
+//   end;
+
+  sort := 'asc';
+
+  CS := TCriticalSection.Create;
+  CS2 := TCriticalSection.Create;
+  CS4 := TCriticalSection.Create;
+//  MainThread := GetCurrentProcess;
+//  SetPriorityClass(MainThread, REALTIME_PRIORITY_CLASS);
+//  SetThreadPriority(MainThread, THREAD_PRIORITY_TIME_CRITICAL);
+
+  links := TStringList.Create;
+  links.Sorted := true;
+
+  label1.Caption := '';
+  label2.Caption := '';
+  label3.Caption := '';
+  label4.Caption := '';
+
+end;
+
+procedure TForm1.ListView1AdvancedCustomDrawItem(Sender: TCustomListView;
+  Item: TListItem; State: TCustomDrawState; Stage: TCustomDrawStage;
+  var DefaultDraw: Boolean);
+var
+  text : string;
+begin
+
+//   exit;
+
+// DefaultDraw := true;
+// Stage := cdPostPaint;
+
+  with ListView1 do
+   begin
+    Canvas.Font.Color := GetColor (item.Index);
+
+   if Item.Selected then
+      begin
+          Canvas.Brush.Color := clBlue;
+          Canvas.Font.Color := clWhite;
+      end;
+
+
+    Canvas.FillRect(Item.DisplayRect(drLabel));
+
+    text := copy (Item.Caption, 1,(listview1.Columns[0].width div 6)-3);
+    if text <> Item.Caption then text := text + '...';
+
+    Canvas.TextOut(Item.DisplayRect(drLabel).Left-1,
+      Item.DisplayRect(drLabel).Top, text);
+
+   // DefaultDraw := false;
+  end;
+
+
+end;
+
+
+
+
+procedure TForm1.ListView1AdvancedCustomDrawSubItem(Sender: TCustomListView;
+  Item: TListItem; SubItem: Integer; State: TCustomDrawState;
+  Stage: TCustomDrawStage; var DefaultDraw: Boolean);
+var mRect: TRect;
+    i : Integer;
+begin
+
+  // exit;
+
+   DefaultDraw := true;
+  mRect := Item.DisplayRect(drLabel);
+  for i := SubItem-1 downto 0 do mRect.Left := mRect.Left + Sender.Column[i].Width;
+  mRect.Right := mRect.Left + Sender.Column[SubItem].Width;
+  with ListView1.Canvas do begin
+    Font.Color := GetColor (item.Index);
+
+    if Item.Selected then
+      begin
+          Brush.Color := clBlue;
+          Font.Color := clWhite;
+      end;
+
+    FillRect(mRect);
+    if SubItem <= Item.SubItems.Count then TextRect(mRect,mRect.Left, mRect.Top, Item.SubItems[SubItem-1]);
+
+  end;
+
+
+
+end;
+
+procedure TForm1.ListView1Click(Sender: TObject);
+begin
+ edit2.Text := inttostr (listview1.ItemIndex);
+end;
+
+procedure TForm1.ListView1ColumnClick(Sender: TObject; Column: TListColumn);
+begin
+     if sort = 'asc' then sort := 'desc' else sort := 'asc';
+     ListView1.CustomSort(@CustomSortProc, Column.Index);
+end;
+
+procedure TForm1.ListView1DblClick(Sender: TObject);
+begin
+  ShellExecute(Handle, 'open', PChar(selectedUrl), nil, nil, SW_NORMAL );
+end;
+
+procedure TForm1.ListView1MouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+var P: TPoint;
+begin
+  if listview1.Items[listview1.ItemIndex] = nil then exit;
+
+  SelectedUrl := listview1.Items[listview1.ItemIndex].Caption;
+
+  P:=GetClientOrigin;
+  if Button = mbRight then
+    PopupMenu1.Popup(X+P.X+ListView1.Left, Y+P.Y+ListView1.Top);
+end;
+
+
+procedure TForm1.N10Click(Sender: TObject);
+begin
+ listview1.Items[listview1.ItemIndex].Delete;
+end;
+
+procedure TForm1.N11Click(Sender: TObject);
+begin
+ MakeReport;
+end;
+
+procedure TForm1.N12Click(Sender: TObject);
+begin
+  MakeSitemap;
+end;
+
+procedure TForm1.N2Click(Sender: TObject);
+begin
+ Application.Terminate;
+end;
+
+procedure TForm1.N5Click(Sender: TObject);
+begin
+   Showmessage ('Xyenu 1.0 alpha' + #10#13 + #10#13 + 'by: Vanik' + #10#13 + #10#13 +
+          'Программа вашпе бесплатна для личного и коммерческого использования.' + #10#13 + #10#13 +
+          'Здорово, Серёга!');
+end;
+
+procedure TForm1.N6Click(Sender: TObject);
+begin
+  Form3.Showmodal;
+end;
+
+procedure TForm1.N7Click(Sender: TObject);
+begin
+   showmessage ('Скоро тут будет документация...');
+//  ShellExecute(Handle, 'open', 'https://ya.ru/', nil, nil, SW_NORMAL );
+end;
+
+procedure TForm1.N8Click(Sender: TObject);
+begin
+  ShellExecute(Handle, 'open', PChar(selectedUrl), nil, nil, SW_NORMAL );
+end;
+
+procedure TForm1.N9Click(Sender: TObject);
+begin
+  ShellExecute(Handle, 'open', PChar(listview1.Items[listview1.ItemIndex].Subitems[6]), nil, nil, SW_NORMAL );
+end;
+
+procedure TForm1.Timer1Timer(Sender: TObject);
+var
+  perc : extended;
+  tElapsed, tLeft : TDateTime;
+begin
+
+ try
+  listview1.Repaint;
+
+  perc := RoundTo (((curUrl+1) / ListView1.Items.Count) * 100, -2);
+  label2.caption := inttostr (curUrl+1) + ' / ' + inttostr (ListView1.Items.Count) + ' (' +
+      floattostr (perc) + '%)';
+
+  tElapsed := Now - tTime;
+  label3.Caption := FormatDateTime( 'hh:nn:ss.zzz', tElapsed );
+
+  tLeft := (tElapsed * (100 / perc)) - tElapsed ;
+  if tLeft = strtotime ('00:00:00') then label4.Caption := 'Завершаем потоки...'
+    else label4.Caption := FormatDateTime( 'hh:nn:ss', tLeft);
+
+  Label1.caption := inttostr (thread);
+
+  if (work = False) and (thread = 0) and (button3.Enabled = false) then
+   begin
+     Button3.Enabled := true;
+     Button4.Enabled := true;
+     Button6.Enabled := true;
+   end;
+
+ except showmessage ('Попался 3'); end;
+
+end;
+
+procedure TForm1.URL1Click(Sender: TObject);
+begin
+  Clipboard.AsText := SelectedUrl;
+  MessageBeep( MB_ICONASTERISK );
+end;
+
+procedure TForm1.URL2Click(Sender: TObject);
+begin
+
+  Form4.Edit1.Text := SelectedUrl;
+  Form4.Edit2.Text := listview1.Items[listview1.ItemIndex].Subitems[6];
+
+  Form4.Showmodal;
+end;
+
+procedure TNewThread.AddSubitems;
+begin
+
+
+end;
+
+procedure TNewThread.AddNewLink;
+begin
+
+
+
+end;
+
+procedure TNewThread.Execute;
+var
+ http : TIdHTTP;
+ l, l2, level, i, cur, tout, res : integer;
+ link, link2, fname, str, url, duration, err, tip : string;
+ strl : TStringList;
+ tItem, tItem2: TListItem;
+ memo:TMemoryStream;
+begin
+
+
+ while work do
+  begin
+    CS.Enter;  //************************************
+
+    try
+    url := '';
+    if curUrl < form1.listview1.items.Count then
+     begin
+      for I := curUrl to form1.listview1.items.Count-1 do
+       begin
+                  // пропускать картинки
+          if Form5.CheckBox2.Checked = true then
+           begin
+            if (pos ('.jpg', AnsiLowerCase(form1.listview1.items[i].Caption)) <> 0) or
+               (pos ('.pdf', AnsiLowerCase(form1.listview1.items[i].Caption)) <> 0) or
+               (pos ('.png', AnsiLowerCase(form1.listview1.items[i].Caption)) <> 0) then
+                 begin
+                  form1.listview1.items[i].SubItems[0] := 'skip external';
+//                  curUrl := i;
+//                  break;
+                 end;
+           end;
+                // фильтр содержит
+          if Form5.Edit1.text <> '' then
+            begin
+             if (pos (Form5.Edit1.Text, AnsiLowerCase(form1.listview1.items[i].Caption)) = 0) and
+                  (form1.listview1.items.count > 1) then
+              begin
+                  form1.listview1.items[i].SubItems[0] := 'skip external';
+//                  curUrl := i;
+//                  break;
+              end;
+            end;
+                // фильтр НЕ содержит
+          if Form5.Edit2.text <> '' then
+            begin
+             if (pos (Form5.Edit2.Text, AnsiLowerCase(form1.listview1.items[i].Caption)) <> 0) and
+                  (form1.listview1.items.count > 1) then
+              begin
+                  form1.listview1.items[i].SubItems[0] := 'skip external';
+//                  curUrl := i;
+//                  break;
+              end;
+            end;
+
+
+          if form1.listview1.items[i].SubItems[0] = 'pending' then
+           begin
+
+            form1.listview1.items[i].SubItems[0] := 'busy';
+            url := form1.listview1.items[i].Caption;
+
+            if curUrl = 0 then level := 1 else
+                level := strtoint(form1.listview1.items[i].SubItems[7]) + 1;
+
+            source := url;
+
+            curUrl := i;
+            tout := 0;
+            break;
+           end;
+         end;
+     {
+   if i = form1.listview1.items.Count then
+       begin
+         inc (tout);
+         if tout > 200 then
+          begin
+            dec (thread);
+            if thread = 0 then
+             begin
+              Form1.Timer1.Enabled := false;
+              work := false;
+              Beep;
+              Form1.Label1.caption := '0';
+              Form1.label4.caption := 'Завершено';
+              Form1.button3.enabled := true; Form1.button4.enabled := true; Form1.button6.enabled := true;
+              once := true;
+              Form1.ReportRequest;
+             end;
+          end;
+       end;
+          }
+     end;
+
+   except showmessage ('Код ошибки: Попался 4 '+ form1.listview1.items[i].Caption + ' ' + inttostr (i)); continue; end;
+
+
+    CS.Leave;  //************************************
+
+    if url <> '' then
+      begin
+
+    //    showmessage (inttostr (thread) + ' поток, урл: ' + url);
+        err := '';
+        try
+          err := '';
+
+            tTime2 := now;
+
+            IdHandler := TIdSSLIOHandlerSocketOpenSSL.Create (nil);
+            IdHandler.SSLOptions.Method := sslvSSLv23;
+            http := TIdHttp.Create;
+            http.IOHandler := IdHandler;
+            http.HandleRedirects := true;
+            http.ConnectTimeout:=7000;
+            http.ReadTimeout:=7000;
+        //    str := form1.IdHTTP1.Get(TIdURI.URLEncode(url));
+
+
+                // сохранять изображения
+          if (pos ('.jpg', AnsiLowerCase(form1.listview1.items[i].Caption)) <> 0) or
+             (pos ('.png', AnsiLowerCase(form1.listview1.items[i].Caption)) <> 0) then
+               begin
+                 if Form5.CheckBox3.Checked = true then
+                  begin
+                    Memo := TMemoryStream.Create;
+                    http.Get(url, Memo);
+  //                      http.Disconnect;
+                    Memo.SaveToFile('image.jpg');
+                    Memo.Free;
+                  end;
+               end
+            else
+             begin
+              if Form1.checkUrl(url) = 'enc' then str := http.Get(TIdURI.URLEncode(url))
+                  else str := http.Get(url);
+              tip := http.Response.ContentType;
+             end;
+
+
+            http.Free;
+
+
+                            // сохранять страницы
+            if Form5.Checkbox1.checked = true then
+             begin
+               strl := TStringList.Create;
+               fname := url;
+               fname := StringReplace (fname, '/', '_', [rfReplaceAll]); fname := StringReplace (fname, '\', '_', [rfReplaceAll]);
+               fname := StringReplace (fname, ':', '_', [rfReplaceAll]); fname := StringReplace (fname, '*', '_', [rfReplaceAll]);
+               fname := StringReplace (fname, '"', '_', [rfReplaceAll]); fname := StringReplace (fname, '<', '_', [rfReplaceAll]);
+               fname := StringReplace (fname, '>', '_', [rfReplaceAll]); fname := StringReplace (fname, '|', '_', [rfReplaceAll]);
+               fname := StringReplace (fname, '?', '_', [rfReplaceAll]);
+               strl.Text := str;
+               if not fileexists ('C:/SavedSite/' + fname + '.txt') then strl.SaveToFile('C:/SavedSite/' + fname + '.txt');
+               strl.free;
+             end;
+
+       //     str := http.Get(TIdURI.URLEncode(url));
+
+          duration := FormatDateTime( 'nn:ss.zzz', Now - tTime2 );
+
+        except
+          on E: Exception do
+           begin
+            err := E.Message;
+           end;
+        end;
+
+        CS2.Enter;   //******************=============
+
+        try
+            if err <> '' then form1.listview1.items[i].SubItems[0] := 'not found'
+//             else form1.listview1.items[i].SubItems[0] := 'proccessing';
+               else form1.listview1.items[i].SubItems[0] := 'ok';
+
+            form1.listview1.items[i].SubItems[1] := tip;   //  тип
+            form1.listview1.items[i].SubItems[2] := inttostr (length(str));   // размер
+            form1.listview1.items[i].SubItems[3] := '';   //title
+            form1.listview1.items[i].SubItems[4] := duration;   // длительность
+            form1.listview1.items[i].SubItems[5] := err;   // ошибка
+            form1.listview1.items[i].SubItems[6] := url;   // Source
+            form1.listview1.items[i].SubItems[7] := inttostr(level);   // уровень
+
+        except showmessage ('Код ошибки: Попался 2'); end;
+
+        CS2.Leave;  //******************=========
+
+          // memo1.text := str;
+
+          //    str := copy (str, pos('href="', str)+3, length (str));
+
+          while (pos('href="', str) <> 0)  and (err = '') do
+            begin
+              link := copy (str, pos('href="', str)+6, 1024);
+              link := copy (link, 1, pos('"', link)-1);
+
+              if pos ('#', link) <> 0 then link := copy (link, 1, pos ('#', link)-1);
+
+              if link = '' then
+                 begin
+                    str := copy (str, pos('href="', str)+3, length (str));
+                    continue;
+                 end;
+                 
+       //      try
+                        //   "//link.ru"
+              if pos ('//', link) = 1 then link := prot + link;
+
+                        //   "/link"
+              if pos ('/', link) = 1 then link := prot + www + dom + link;
+
+                        //   "http://domen.ru/link"
+              if (pos ('http://', link) = 1) or (pos ('https://', link) = 1) then
+               begin
+//                link := link;
+               end
+              else       //   "link"
+               begin
+                 if (pos ('javascript:', link) > 0) or (pos ('mailto:', link) > 0) or
+                    (pos ('tel:', link) > 0)
+
+                  then   //  external
+                     begin
+//                     link := link;
+                     end
+                 else
+                     begin
+                       link := prot + dom + '/' + link;
+                     end;
+               end;
+
+//                l := -1; l2 := -1;
+//                l := ;
+//                l2 := ;
+
+      //        except showmessage ('Код ошибки: Вот тута 2'); end;
+
+             CS4.Enter;  // ====++++++++++++++----------+++++++++
+
+             try
+              if (links.IndexOf(link) = -1) and (links.IndexOf(link + '/') = -1) then
+               begin
+                     try
+                      Item := Form1.ListView1.Items.Add;
+
+                                          //  external or not
+                      if (pos ('http://'+dom, link) = 1) or (pos ('https://'+dom, link) = 1) or
+                         (pos ('http://www.'+dom, link) = 1) or (pos ('https://www.'+dom, link) = 1) then
+                       begin
+                          Item.Caption := link;
+                          Item.SubItems.Add('pending');
+                          if link[length(link)] <> '/' then links.Add(link + '/');
+                          links.Add(link);
+                       end
+                      else
+                       begin
+//                          if link = '' then link := link + 'empt';
+                          Item.Caption := link;
+                          Item.SubItems.Add('skip external');
+                          if link[length(link)] <> '/' then links.Add(link + '/');
+                          links.Add(link);
+ 
+                       end;
+
+                      Item.SubItems.Add ('');   //  тип
+                      Item.SubItems.Add ('');   // размер
+                      Item.SubItems.Add ('');   //title
+                      Item.SubItems.Add ('');   // длительность
+                      Item.SubItems.Add ('');   // ошибка
+                      Item.SubItems.Add (url);   // Source
+                      Item.SubItems.Add (inttostr(level));   // уровень
+
+                     except showmessage ('Код ошибки: Попался 0'); end;
+
+
+
+               end;
+
+               str := copy (str, pos('href="', str)+3, length (str));
+
+              except showmessage ('Код ошибки: Вот тута 3'); end;
+
+              CS4.Leave;     // ====++++++++++++++----------+++++++++
+
+            end;   //   конец парса ссылки
+
+      //  if Form1.ListView1.Items.Count > 3000 then work := false;
+
+
+
+      end;  //   end of  if url <> ''
+
+  end;   //   end of while work
+
+
+
+end;
+
+procedure Tform1.ReportRequest;
+begin
+    if once = true then
+    begin
+      once := false;
+      ans:=MessageBox(handle, PChar('Открыть отчет?'), PChar('Xyenu - Сбор ссылок завершен'), MB_YESNO+MB_ICONQUESTION);
+      case ans of
+       idyes: Form1.MakeReport;
+      end;
+    end;
+end;
+
+
+end.
