@@ -54,6 +54,7 @@ type
     Button10: TButton;
     N11: TMenuItem;
     N12: TMenuItem;
+    ListBox1: TListBox;
     procedure N2Click(Sender: TObject);
     procedure N5Click(Sender: TObject);
     procedure Button1Click(Sender: TObject);
@@ -283,9 +284,15 @@ end;
 
 procedure TForm1.Button10Click(Sender: TObject);
 begin
- NewThread := TNewThread.Create(true);
- NewThread.FreeOnTerminate := True; // Уничтожить поток после завершения работы
- NewThread.Resume;
+
+
+
+
+
+//
+// NewThread := TNewThread.Create(true);
+// NewThread.FreeOnTerminate := True; // Уничтожить поток после завершения работы
+// NewThread.Resume;
 end;
 
 procedure TForm1.Button1Click(Sender: TObject);
@@ -330,7 +337,7 @@ begin
 // Button3.Enabled := false; Button4.Enabled := false; Button6.Enabled := false;
 
  maxThreads := Form3.TrackBar1.Position;
- maxThreads := 1;
+ maxThreads := 50;
  work := true;
 
  tTime := now;
@@ -476,11 +483,11 @@ var
   MainThread: THandle;
 begin
 
-  if yearof (now) = 2021 then
-   begin
-    showmessage ('Впесду тут работать.. Я увольняюсь.');
-    Application.Terminate;
-   end;
+//  if yearof (now) = 2021 then
+//   begin
+//    showmessage ('Впесду тут работать.. Я увольняюсь.');
+//    Application.Terminate;
+//   end;
 
   sort := 'asc';
 
@@ -498,6 +505,8 @@ begin
   label2.Caption := '';
   label3.Caption := '';
   label4.Caption := '';
+
+  listbox1.Items.LoadFromFile('list.txt', TEncoding.UTF8);
 
 end;
 
@@ -715,102 +724,42 @@ procedure TNewThread.Execute;
 var
  http : TIdHTTP;
  l, l2, level, i, cur, tout, res : integer;
- link, link2, fname, str, url, duration, err, tip : string;
+ domain, link, link1, link2, link3, fname, str, str2, url, duration, err, tip : string;
  strl : TStringList;
  tItem, tItem2: TListItem;
  memo:TMemoryStream;
 begin
 
 
+
+
+
+
  while work do
   begin
     CS.Enter;  //************************************
 
+//    if curUrl > 10 then break;
+
     try
-    url := '';
-    if curUrl < form1.listview1.items.Count then
-     begin
-      for I := curUrl to form1.listview1.items.Count-1 do
-       begin
-                  // пропускать картинки
-          if Form5.CheckBox2.Checked = true then
-           begin
-            if (pos ('.jpg', AnsiLowerCase(form1.listview1.items[i].Caption)) <> 0) or
-               (pos ('.pdf', AnsiLowerCase(form1.listview1.items[i].Caption)) <> 0) or
-               (pos ('.png', AnsiLowerCase(form1.listview1.items[i].Caption)) <> 0) then
-                 begin
-                  form1.listview1.items[i].SubItems[0] := 'skip external';
-//                  curUrl := i;
-//                  break;
-                 end;
-           end;
-                // фильтр содержит
-          if Form5.Edit1.text <> '' then
-            begin
-             if (pos (Form5.Edit1.Text, AnsiLowerCase(form1.listview1.items[i].Caption)) = 0) and
-                  (form1.listview1.items.count > 1) then
-              begin
-                  form1.listview1.items[i].SubItems[0] := 'skip external';
-//                  curUrl := i;
-//                  break;
-              end;
-            end;
-                // фильтр НЕ содержит
-          if Form5.Edit2.text <> '' then
-            begin
-             if (pos (Form5.Edit2.Text, AnsiLowerCase(form1.listview1.items[i].Caption)) <> 0) and
-                  (form1.listview1.items.count > 1) then
-              begin
-                  form1.listview1.items[i].SubItems[0] := 'skip external';
-//                  curUrl := i;
-//                  break;
-              end;
-            end;
+      domain := form1.listbox1.items[curUrl];
+      url := 'https://' + domain;
+      form1.ListBox1.ItemIndex := curUrl;
 
+      inc(curUrl);
 
-          if form1.listview1.items[i].SubItems[0] = 'pending' then
-           begin
+//      if curUrl mod 100 = 0 then
+//       begin
+//         form1.listbox1.items.SaveToFile('list_back.txt');
+//         form1.Memo1.Lines.SaveToFile('inns.txt');
+//       end;
 
-            form1.listview1.items[i].SubItems[0] := 'busy';
-            url := form1.listview1.items[i].Caption;
+      tout := 0;
 
-            if curUrl = 0 then level := 1 else
-                level := strtoint(form1.listview1.items[i].SubItems[7]) + 1;
-
-            source := url;
-
-            curUrl := i;
-            tout := 0;
-            break;
-           end;
-         end;
-     {
-   if i = form1.listview1.items.Count then
-       begin
-         inc (tout);
-         if tout > 200 then
-          begin
-            dec (thread);
-            if thread = 0 then
-             begin
-              Form1.Timer1.Enabled := false;
-              work := false;
-              Beep;
-              Form1.Label1.caption := '0';
-              Form1.label4.caption := 'Завершено';
-              Form1.button3.enabled := true; Form1.button4.enabled := true; Form1.button6.enabled := true;
-              once := true;
-              Form1.ReportRequest;
-             end;
-          end;
-       end;
-          }
-     end;
-
-   except showmessage ('Код ошибки: Попался 4 '+ form1.listview1.items[i].Caption + ' ' + inttostr (i)); continue; end;
-
+    except showmessage ('Код ошибки: Попался 4 '+ form1.listview1.items[i].Caption + ' ' + inttostr (i)); continue; end;
 
     CS.Leave;  //************************************
+
 
     if url <> '' then
       begin
@@ -829,47 +778,33 @@ begin
             http.HandleRedirects := true;
             http.ConnectTimeout:=7000;
             http.ReadTimeout:=7000;
-        //    str := form1.IdHTTP1.Get(TIdURI.URLEncode(url));
+//            str := form1.IdHTTP1.Get(TIdURI.URLEncode(url));
 
 
-                // сохранять изображения
-          if (pos ('.jpg', AnsiLowerCase(form1.listview1.items[i].Caption)) <> 0) or
-             (pos ('.png', AnsiLowerCase(form1.listview1.items[i].Caption)) <> 0) then
-               begin
-                 if Form5.CheckBox3.Checked = true then
-                  begin
-                    Memo := TMemoryStream.Create;
-                    http.Get(url, Memo);
-  //                      http.Disconnect;
-                    Memo.SaveToFile('image.jpg');
-                    Memo.Free;
-                  end;
-               end
-            else
-             begin
-              if Form1.checkUrl(url) = 'enc' then str := http.Get(TIdURI.URLEncode(url))
-                  else str := http.Get(url);
-              tip := http.Response.ContentType;
-             end;
+            if Form1.checkUrl(url) = 'enc' then str := http.Get(TIdURI.URLEncode(url))
+                else str := http.Get(url);
+//            tip := http.Response.ContentType;
 
+
+//            showmessage ('|' + url + '|');
 
             http.Free;
 
 
                             // сохранять страницы
-            if Form5.Checkbox1.checked = true then
-             begin
-               strl := TStringList.Create;
-               fname := url;
-               fname := StringReplace (fname, '/', '_', [rfReplaceAll]); fname := StringReplace (fname, '\', '_', [rfReplaceAll]);
-               fname := StringReplace (fname, ':', '_', [rfReplaceAll]); fname := StringReplace (fname, '*', '_', [rfReplaceAll]);
-               fname := StringReplace (fname, '"', '_', [rfReplaceAll]); fname := StringReplace (fname, '<', '_', [rfReplaceAll]);
-               fname := StringReplace (fname, '>', '_', [rfReplaceAll]); fname := StringReplace (fname, '|', '_', [rfReplaceAll]);
-               fname := StringReplace (fname, '?', '_', [rfReplaceAll]);
-               strl.Text := str;
-               if not fileexists ('C:/SavedSite/' + fname + '.txt') then strl.SaveToFile('C:/SavedSite/' + fname + '.txt');
-               strl.free;
-             end;
+//            if Form5.Checkbox1.checked = true then
+//             begin
+//               strl := TStringList.Create;
+//               fname := url;
+//               fname := StringReplace (fname, '/', '_', [rfReplaceAll]); fname := StringReplace (fname, '\', '_', [rfReplaceAll]);
+//               fname := StringReplace (fname, ':', '_', [rfReplaceAll]); fname := StringReplace (fname, '*', '_', [rfReplaceAll]);
+//               fname := StringReplace (fname, '"', '_', [rfReplaceAll]); fname := StringReplace (fname, '<', '_', [rfReplaceAll]);
+//               fname := StringReplace (fname, '>', '_', [rfReplaceAll]); fname := StringReplace (fname, '|', '_', [rfReplaceAll]);
+//               fname := StringReplace (fname, '?', '_', [rfReplaceAll]);
+//               strl.Text := str;
+//               if not fileexists ('C:/SavedSite/' + fname + '.txt') then strl.SaveToFile('C:/SavedSite/' + fname + '.txt');
+//               strl.free;
+//             end;
 
        //     str := http.Get(TIdURI.URLEncode(url));
 
@@ -882,123 +817,60 @@ begin
            end;
         end;
 
-        CS2.Enter;   //******************=============
-
-        try
-            if err <> '' then form1.listview1.items[i].SubItems[0] := 'not found'
-//             else form1.listview1.items[i].SubItems[0] := 'proccessing';
-               else form1.listview1.items[i].SubItems[0] := 'ok';
-
-            form1.listview1.items[i].SubItems[1] := tip;   //  тип
-            form1.listview1.items[i].SubItems[2] := inttostr (length(str));   // размер
-            form1.listview1.items[i].SubItems[3] := '';   //title
-            form1.listview1.items[i].SubItems[4] := duration;   // длительность
-            form1.listview1.items[i].SubItems[5] := err;   // ошибка
-            form1.listview1.items[i].SubItems[6] := url;   // Source
-            form1.listview1.items[i].SubItems[7] := inttostr(level);   // уровень
-
-        except showmessage ('Код ошибки: Попался 2'); end;
-
-        CS2.Leave;  //******************=========
-
-          // memo1.text := str;
-
-          //    str := copy (str, pos('href="', str)+3, length (str));
-
-          while (pos('href="', str) <> 0)  and (err = '') do
-            begin
-              link := copy (str, pos('href="', str)+6, 1024);
-              link := copy (link, 1, pos('"', link)-1);
-
-              if pos ('#', link) <> 0 then link := copy (link, 1, pos ('#', link)-1);
-
-              if link = '' then
-                 begin
-                    str := copy (str, pos('href="', str)+3, length (str));
-                    continue;
-                 end;
-                 
-       //      try
-                        //   "//link.ru"
-              if pos ('//', link) = 1 then link := prot + link;
-
-                        //   "/link"
-              if pos ('/', link) = 1 then link := prot + www + dom + link;
-
-                        //   "http://domen.ru/link"
-              if (pos ('http://', link) = 1) or (pos ('https://', link) = 1) then
-               begin
-//                link := link;
-               end
-              else       //   "link"
-               begin
-                 if (pos ('javascript:', link) > 0) or (pos ('mailto:', link) > 0) or
-                    (pos ('tel:', link) > 0)
-
-                  then   //  external
-                     begin
-//                     link := link;
-                     end
-                 else
-                     begin
-                       link := prot + dom + '/' + link;
-                     end;
-               end;
-
-//                l := -1; l2 := -1;
-//                l := ;
-//                l2 := ;
-
-      //        except showmessage ('Код ошибки: Вот тута 2'); end;
-
-             CS4.Enter;  // ====++++++++++++++----------+++++++++
-
-             try
-              if (links.IndexOf(link) = -1) and (links.IndexOf(link + '/') = -1) then
-               begin
-                     try
-                      Item := Form1.ListView1.Items.Add;
-
-                                          //  external or not
-                      if (pos ('http://'+dom, link) = 1) or (pos ('https://'+dom, link) = 1) or
-                         (pos ('http://www.'+dom, link) = 1) or (pos ('https://www.'+dom, link) = 1) then
-                       begin
-                          Item.Caption := link;
-                          Item.SubItems.Add('pending');
-                          if link[length(link)] <> '/' then links.Add(link + '/');
-                          links.Add(link);
-                       end
-                      else
-                       begin
-//                          if link = '' then link := link + 'empt';
-                          Item.Caption := link;
-                          Item.SubItems.Add('skip external');
-                          if link[length(link)] <> '/' then links.Add(link + '/');
-                          links.Add(link);
- 
-                       end;
-
-                      Item.SubItems.Add ('');   //  тип
-                      Item.SubItems.Add ('');   // размер
-                      Item.SubItems.Add ('');   //title
-                      Item.SubItems.Add ('');   // длительность
-                      Item.SubItems.Add ('');   // ошибка
-                      Item.SubItems.Add (url);   // Source
-                      Item.SubItems.Add (inttostr(level));   // уровень
-
-                     except showmessage ('Код ошибки: Попался 0'); end;
 
 
 
-               end;
+          str2 := str;
+        //   парса текста
+        while (pos('ИНН', str2) <> 0) do
+          begin
+            link := copy (str2, pos('ИНН', str2), 50);
+            link := StringReplace (link, #9, '', [rfReplaceAll]);
+            link := StringReplace (link, #10, '', [rfReplaceAll]);
+            link := StringReplace (link, #13, '', [rfReplaceAll]);
 
-               str := copy (str, pos('href="', str)+3, length (str));
+            CS2.Enter;  //************************************
 
-              except showmessage ('Код ошибки: Вот тута 3'); end;
+              form1.Memo1.Lines.Add(domain + '||' + link);
 
-              CS4.Leave;     // ====++++++++++++++----------+++++++++
+            CS2.Leave;  //************************************
 
-            end;   //   конец парса ссылки
+            str2 := copy (str2, pos('ИНН', str2)+3, length (str2));
+
+          end;   //   конец парса текста
+
+          // *--------------------------------------------
+
+        link1 := ''; link2 := ''; link3 := '';
+
+        while (pos('href="', str) <> 0)  and (err = '') do
+          begin
+            link := copy (str, pos('href="', str)+6, 1024);
+            link := copy (link, 1, pos('"', link)-1);
+
+//            form1.memo1.lines.add(link);
+
+
+           if ((pos('/contact', link) <> 0) or (pos('/kontakt', link) <> 0) or (pos('/polit', link) <> 0) or (pos('/polic', link) <> 0)) and (tout < 3) then
+              begin
+                 CS4.Enter;  // ====++++++++++++++----------+++++++++
+
+                  if (link <> link1) and (link <> link2) and (link <> link3) then form1.ListBox1.Items.Add(domain + link);
+
+                  if link1 = '' then link1 := link
+                  else if link2 = '' then link2 := link
+                  else if link3 = '' then link3 := link;
+
+
+                  inc(tout);
+
+
+                 CS4.Leave;     // ====++++++++++++++----------+++++++++
+              end;
+
+            str := copy (str, pos('href="', str)+3, length (str));
+
+          end;   //   конец парса ссылки
 
       //  if Form1.ListView1.Items.Count > 3000 then work := false;
 
@@ -1007,6 +879,12 @@ begin
       end;  //   end of  if url <> ''
 
   end;   //   end of while work
+
+
+// *************----------------------************************** обычная
+// *************----------------------************************** обычная
+// *************----------------------************************** обычная
+
 
 
 

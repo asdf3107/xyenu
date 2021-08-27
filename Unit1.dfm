@@ -296,14 +296,22 @@ object Form1: TForm1
     end
   end
   object Memo1: TMemo
-    Left = 480
-    Top = 440
+    Left = 569
+    Top = 184
     Width = 321
-    Height = 129
+    Height = 273
     Lines.Strings = (
       'Memo1')
     TabOrder = 3
-    Visible = False
+    WordWrap = False
+  end
+  object ListBox1: TListBox
+    Left = 40
+    Top = 144
+    Width = 307
+    Height = 241
+    ItemHeight = 13
+    TabOrder = 4
   end
   object IdHTTP1: TIdHTTP
     IOHandler = IdSSLIOHandlerSocketOpenSSL1
