@@ -326,7 +326,7 @@ begin
  if dom[length (dom)] = '/' then dom := copy (dom, 1, length (dom)-1);
  dom := stringreplace (dom, prot, '', [rfReplaceAll]);
 
- SaveTo := 'C:/SavedSite/' + dom;
+ SaveTo := 'C:/SavedSite/' + dom + '/';
  if (not DirectoryExists(SaveTo)) then CreateDir(SaveTo);
 
 
@@ -879,6 +879,7 @@ begin
                fname := StringReplace (fname, '"', '_', [rfReplaceAll]); fname := StringReplace (fname, '<', '_', [rfReplaceAll]);
                fname := StringReplace (fname, '>', '_', [rfReplaceAll]); fname := StringReplace (fname, '|', '_', [rfReplaceAll]);
                fname := StringReplace (fname, '?', '_', [rfReplaceAll]);
+               fname := copy (fname, 1, 200);
                strl.Text := str;
                if not fileexists (SaveTo + fname + '.txt') then strl.SaveToFile(SaveTo + fname + '.txt');
                strl.free;
@@ -1030,7 +1031,7 @@ begin
 
       end;  //   end of  if url <> ''
 
-     break;
+
 
   end;   //   end of while work
 
