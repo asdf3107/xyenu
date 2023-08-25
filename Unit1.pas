@@ -45,7 +45,6 @@ type
     StaticText4: TStaticText;
     Label4: TLabel;
     Button5: TButton;
-    Memo1: TMemo;
     Button7: TButton;
     Button8: TButton;
     N10: TMenuItem;
@@ -54,6 +53,7 @@ type
     Button10: TButton;
     N11: TMenuItem;
     N12: TMenuItem;
+    ComboBox1: TComboBox;
     procedure N2Click(Sender: TObject);
     procedure N5Click(Sender: TObject);
     procedure Button1Click(Sender: TObject);
@@ -115,7 +115,7 @@ type
 
 var
   Form1: TForm1;
-  sort, selectedUrl, source, old, dom, prot, www : string;
+  sort, selectedUrl, source, old, dom, prot, www, SaveTo : string;
   ans, curUrl, j, thread, maxThreads : integer;
   once, work: boolean;
   CS, CS2, CS4 : TCriticalSection;
@@ -124,6 +124,12 @@ var
   IdHandler : TIdSSLIOHandlerSocketOpenSSL;
   NewThread: TNewThread;
   Item : TListItem;
+
+
+
+
+
+
 
 implementation
 
@@ -304,6 +310,7 @@ begin
  Item.SubItems.Add('');
  Item.SubItems.Add('0');
 
+
  if pos ('http://', edit1.Text) = 1 then prot := 'http://';
  if pos ('https://', edit1.Text) = 1 then prot := 'https://';
  
@@ -319,6 +326,8 @@ begin
  if dom[length (dom)] = '/' then dom := copy (dom, 1, length (dom)-1);
  dom := stringreplace (dom, prot, '', [rfReplaceAll]);
 
+ SaveTo := 'C:/SavedSite/' + dom;
+ if (not DirectoryExists(SaveTo)) then CreateDir(SaveTo);
 
 
  links.Add(prot + www + dom);
@@ -871,7 +880,7 @@ begin
                fname := StringReplace (fname, '>', '_', [rfReplaceAll]); fname := StringReplace (fname, '|', '_', [rfReplaceAll]);
                fname := StringReplace (fname, '?', '_', [rfReplaceAll]);
                strl.Text := str;
-               if not fileexists ('C:/SavedSite/' + fname + '.txt') then strl.SaveToFile('C:/SavedSite/' + fname + '.txt');
+               if not fileexists (SaveTo + fname + '.txt') then strl.SaveToFile(SaveTo + fname + '.txt');
                strl.free;
              end;
 
@@ -886,7 +895,7 @@ begin
            end;
         end;
 
-{         // пока закрыли    только сейчас
+         // пока закрыли    только сейчас
         CS2.Enter;   //******************=============
 
         try
@@ -905,7 +914,7 @@ begin
         except showmessage ('Код ошибки: Попался 2'); end;
 
         CS2.Leave;  //******************=========
- }
+
 
  // только сейчас
 
@@ -926,7 +935,7 @@ begin
                  end;
                  
        //      try
-       {
+
                         //   "//link.ru"
               if pos ('//', link) = 1 then link := prot + link;
 
@@ -1007,9 +1016,9 @@ begin
               except showmessage ('Код ошибки: Вот тута 3'); end;
 
               CS4.Leave;     // ====++++++++++++++----------+++++++++
-               }
 
-              form1.memo1.lines.Add(link);
+
+             // form1.memo1.lines.Add(link);
               str := copy (str, pos('href="', str)+3, length (str));
 
 

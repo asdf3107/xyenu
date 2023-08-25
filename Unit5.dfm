@@ -10,9 +10,7 @@ object Form5: TForm5
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
   Position = poOwnerFormCenter
-  PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
     Left = 8
@@ -34,6 +32,8 @@ object Form5: TForm5
     Width = 137
     Height = 17
     Caption = #1057#1086#1093#1088#1072#1085#1103#1090#1100'  '#1089#1090#1088#1072#1085#1080#1094#1099
+    Checked = True
+    State = cbChecked
     TabOrder = 0
   end
   object CheckBox2: TCheckBox
