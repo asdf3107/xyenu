@@ -2,8 +2,8 @@ object Form1: TForm1
   Left = 0
   Top = 0
   Caption = 'Xyenu'
-  ClientHeight = 638
-  ClientWidth = 1364
+  ClientHeight = 637
+  ClientWidth = 1360
   Color = clBtnFace
   DoubleBuffered = True
   Font.Charset = DEFAULT_CHARSET
@@ -19,8 +19,8 @@ object Form1: TForm1
   object ListView1: TListView
     Left = 0
     Top = 52
-    Width = 1364
-    Height = 563
+    Width = 1360
+    Height = 562
     Align = alClient
     BevelInner = bvSpace
     Columns = <
@@ -83,24 +83,21 @@ object Form1: TForm1
     OnColumnClick = ListView1ColumnClick
     OnDblClick = ListView1DblClick
     OnMouseDown = ListView1MouseDown
-    ExplicitWidth = 980
-    ExplicitHeight = 562
   end
   object Panel1: TPanel
     Left = 0
     Top = 0
-    Width = 1364
+    Width = 1360
     Height = 52
     Align = alTop
     TabOrder = 1
-    ExplicitWidth = 980
     object Edit1: TEdit
       Left = 16
       Top = 14
       Width = 214
       Height = 21
       TabOrder = 0
-      Text = 'https://topvisor.com/'
+      Text = 'https://xn--80ailajhi0a4e4cm.xn--p1ai/'
     end
     object Button1: TButton
       Left = 535
@@ -189,15 +186,13 @@ object Form1: TForm1
   end
   object Panel2: TPanel
     Left = 0
-    Top = 615
-    Width = 1364
+    Top = 614
+    Width = 1360
     Height = 23
     Align = alBottom
     TabOrder = 2
-    ExplicitTop = 614
-    ExplicitWidth = 980
     DesignSize = (
-      1364
+      1360
       23)
     object Label1: TLabel
       Left = 67
@@ -309,6 +304,33 @@ object Form1: TForm1
       TabOrder = 6
       Text = 'Edit2'
     end
+  end
+  object Memo1: TMemo
+    Left = 1048
+    Top = 328
+    Width = 289
+    Height = 233
+    Lines.Strings = (
+      'Memo1')
+    TabOrder = 3
+  end
+  object Button11: TButton
+    Left = 1048
+    Top = 289
+    Width = 75
+    Height = 25
+    Caption = 'LinksToMemo'
+    TabOrder = 4
+    OnClick = Button11Click
+  end
+  object Button12: TButton
+    Left = 1144
+    Top = 289
+    Width = 75
+    Height = 25
+    Caption = 'ParseMemo'
+    TabOrder = 5
+    OnClick = Button12Click
   end
   object IdHTTP1: TIdHTTP
     IOHandler = IdSSLIOHandlerSocketOpenSSL1

@@ -2,8 +2,8 @@ object Form1: TForm1
   Left = 0
   Top = 0
   Caption = 'Xyenu'
-  ClientHeight = 638
-  ClientWidth = 984
+  ClientHeight = 637
+  ClientWidth = 1360
   Color = clBtnFace
   DoubleBuffered = True
   Font.Charset = DEFAULT_CHARSET
@@ -12,17 +12,15 @@ object Form1: TForm1
   Font.Name = 'Tahoma'
   Font.Style = []
   Menu = MainMenu1
-  OldCreateOrder = False
   Position = poScreenCenter
   OnClose = FormClose
   OnCreate = FormCreate
-  PixelsPerInch = 96
   TextHeight = 13
   object ListView1: TListView
     Left = 0
     Top = 52
-    Width = 984
-    Height = 563
+    Width = 1360
+    Height = 562
     Align = alClient
     BevelInner = bvSpace
     Columns = <
@@ -89,7 +87,7 @@ object Form1: TForm1
   object Panel1: TPanel
     Left = 0
     Top = 0
-    Width = 984
+    Width = 1360
     Height = 52
     Align = alTop
     TabOrder = 1
@@ -99,10 +97,10 @@ object Form1: TForm1
       Width = 214
       Height = 21
       TabOrder = 0
-      Text = 'https://rtk-rus.ru/'
+      Text = 'https://topvisor.com/'
     end
     object Button1: TButton
-      Left = 399
+      Left = 535
       Top = 9
       Width = 75
       Height = 37
@@ -111,7 +109,7 @@ object Form1: TForm1
       OnClick = Button1Click
     end
     object Button2: TButton
-      Left = 504
+      Left = 640
       Top = 9
       Width = 75
       Height = 37
@@ -120,7 +118,7 @@ object Form1: TForm1
       OnClick = Button2Click
     end
     object Button3: TButton
-      Left = 832
+      Left = 936
       Top = 3
       Width = 75
       Height = 21
@@ -129,7 +127,7 @@ object Form1: TForm1
       OnClick = Button3Click
     end
     object Button4: TButton
-      Left = 856
+      Left = 960
       Top = 27
       Width = 75
       Height = 21
@@ -138,7 +136,7 @@ object Form1: TForm1
       OnClick = Button4Click
     end
     object Button6: TButton
-      Left = 737
+      Left = 841
       Top = 3
       Width = 75
       Height = 21
@@ -147,7 +145,7 @@ object Form1: TForm1
       OnClick = Button6Click
     end
     object Button7: TButton
-      Left = 272
+      Left = 256
       Top = 12
       Width = 75
       Height = 25
@@ -156,7 +154,7 @@ object Form1: TForm1
       OnClick = Button7Click
     end
     object Button9: TButton
-      Left = 913
+      Left = 1017
       Top = 1
       Width = 60
       Height = 25
@@ -165,7 +163,7 @@ object Form1: TForm1
       OnClick = Button9Click
     end
     object Button10: TButton
-      Left = 616
+      Left = 737
       Top = 12
       Width = 75
       Height = 25
@@ -173,16 +171,28 @@ object Form1: TForm1
       TabOrder = 8
       OnClick = Button10Click
     end
+    object ComboBox1: TComboBox
+      Left = 360
+      Top = 17
+      Width = 161
+      Height = 21
+      TabOrder = 9
+      Text = #1055#1072#1088#1089#1080#1090#1100' '#1089#1072#1081#1090
+      Items.Strings = (
+        #1055#1072#1088#1089#1080#1090#1100' '#1089#1072#1081#1090
+        #1057#1086#1079#1076#1072#1090#1100' '#1079#1077#1088#1082#1072#1083#1086' '#1089#1072#1081#1090#1072
+        #1063#1077#1082#1072#1090#1100' '#1089#1089#1099#1083#1082#1080' '#1080#1079' '#1083#1080#1089#1090#1072)
+    end
   end
   object Panel2: TPanel
     Left = 0
-    Top = 615
-    Width = 984
+    Top = 614
+    Width = 1360
     Height = 23
     Align = alBottom
     TabOrder = 2
     DesignSize = (
-      984
+      1360
       23)
     object Label1: TLabel
       Left = 67
@@ -295,27 +305,8 @@ object Form1: TForm1
       Text = 'Edit2'
     end
   end
-  object Memo1: TMemo
-    Left = 569
-    Top = 184
-    Width = 321
-    Height = 273
-    Lines.Strings = (
-      'Memo1')
-    TabOrder = 3
-    Visible = False
-  end
-  object ListBox1: TListBox
-    Left = 40
-    Top = 144
-    Width = 307
-    Height = 241
-    ItemHeight = 13
-    TabOrder = 4
-  end
   object IdHTTP1: TIdHTTP
     IOHandler = IdSSLIOHandlerSocketOpenSSL1
-    AllowCookies = True
     HandleRedirects = True
     ProxyParams.BasicAuthentication = False
     ProxyParams.ProxyPort = 0

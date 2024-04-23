@@ -7,7 +7,7 @@ uses
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Grids, IdBaseComponent, IdComponent,
   IdTCPConnection, IdTCPClient, IdHTTP, Vcl.ComCtrls, Vcl.StdCtrls, Vcl.ExtCtrls,
   Vcl.Menus, Vcl.Buttons, SyncObjs, IdIOHandler, IdIOHandlerSocket,
-  IdIOHandlerStack, IdSSL, IdSSLOpenSSL, Math, DateUtils, ShellApi, clipbrd, IdURI;
+  IdIOHandlerStack, IdSSL, IdSSLOpenSSL, Math, DateUtils, ShellApi, clipbrd, IdURI, System.Net.URLClient;
 
 type
   TForm1 = class(TForm)
@@ -54,6 +54,9 @@ type
     N11: TMenuItem;
     N12: TMenuItem;
     ComboBox1: TComboBox;
+    Memo1: TMemo;
+    Button11: TButton;
+    Button12: TButton;
     procedure N2Click(Sender: TObject);
     procedure N5Click(Sender: TObject);
     procedure Button1Click(Sender: TObject);
@@ -89,6 +92,8 @@ type
     procedure Button10Click(Sender: TObject);
     procedure N11Click(Sender: TObject);
     procedure N12Click(Sender: TObject);
+    procedure Button11Click(Sender: TObject);
+    procedure Button12Click(Sender: TObject);
   private
     procedure MakeReport;
     procedure ReportRequest;
@@ -115,7 +120,7 @@ type
 
 var
   Form1: TForm1;
-  sort, selectedUrl, source, old, dom, prot, www, SaveTo : string;
+  cirilic_dom, sort, selectedUrl, source, old, dom, prot, www, SaveTo : string;
   ans, curUrl, j, thread, maxThreads : integer;
   once, work: boolean;
   CS, CS2, CS4 : TCriticalSection;
@@ -294,6 +299,84 @@ begin
  NewThread.Resume;
 end;
 
+procedure TForm1.Button11Click(Sender: TObject);
+begin
+  memo1.Lines := links;
+end;
+
+procedure TForm1.Button12Click(Sender: TObject);
+var
+  link, str: string;
+  quote: string;
+begin
+
+  str := memo1.Text;
+  links := TStringList.Create;
+
+          while (pos('href=', str) <> 0) do
+            begin
+              if (pos('href=', str) <> 0) then
+                begin
+                  link := copy (str, pos('href=', str)+5, 1024);
+                  quote := copy (link, 1, 1);
+                      //  ссылки бывают href="" и   href=''
+                  if (quote = '''') or (quote = '"') then
+                    begin
+                      link := copy (link, 2, 1024);
+                      link := copy (link, 1, pos(quote, link)-1);
+                    end
+                  else   // такие тоже, походу браузер понимает <a href=nabor.php?&page=2>
+                    begin
+                      link := copy (link, 1, pos('>', link)-1);
+                    end;
+                end;
+
+
+              if pos ('#', link) <> 0 then link := copy (link, 1, pos ('#', link)-1);
+
+              if link = '' then
+                 begin
+                    str := copy (str, pos('href=', str)+3, length (str));
+                    continue;
+                 end;
+
+
+              if (cirilic_dom <> '') and
+                 (pos (cirilic_dom, link) <> 0) then link := stringreplace (link, cirilic_dom, dom, [rfReplaceAll]);
+
+                        //   "//link.ru"
+              if pos ('//', link) = 1 then link := prot + link;
+
+                        //   "/link"
+              if pos ('/', link) = 1 then link := prot + www + dom + link;
+
+                        //   "http://domen.ru/link"
+              if (pos ('http://', link) = 1) or (pos ('https://', link) = 1) then
+               begin
+//                link := link;
+               end
+              else       //   "link"
+               begin
+                 if (pos ('javascript:', link) > 0) or (pos ('mailto:', link) > 0) or
+                    (pos ('tel:', link) > 0)
+
+                  then   //  external
+                     begin
+//                     link := link;
+                     end
+                 else
+                     begin
+                       link := prot + dom + '/' + link;
+                     end;
+               end;
+
+               links.Add(link);
+               str := copy (str, pos('href=', str)+3, length (str));
+
+            end;
+
+end;
+
 procedure TForm1.Button1Click(Sender: TObject);
 begin
  listView1.SetFocus;
@@ -301,6 +384,7 @@ begin
 
  Item := ListView1.Items.Add;
  Item.Caption := edit1.text;
+// Item.Caption := 'https://xn--80ailajhi0a4e4cm.xn--p1ai/accessuary_svechi_dlya_torta.php';     // test!
  Item.SubItems.Add('pending');
  Item.SubItems.Add('');
  Item.SubItems.Add('');
@@ -313,7 +397,7 @@ begin
 
  if pos ('http://', edit1.Text) = 1 then prot := 'http://';
  if pos ('https://', edit1.Text) = 1 then prot := 'https://';
- 
+
  if (pos ('https://', edit1.Text) = 0) and (pos ('http://', edit1.Text) = 0) then
    begin
      showmessage ('Нужно указать протокол https:// or http://');
@@ -325,6 +409,9 @@ begin
  dom := edit1.Text;
  if dom[length (dom)] = '/' then dom := copy (dom, 1, length (dom)-1);
  dom := stringreplace (dom, prot, '', [rfReplaceAll]);
+ if (pos('xn--', dom) <> 0) then cirilic_dom := System.Net.URLClient.TURI.IDNAToUnicode (dom);
+
+//  showmessage(dom + ' ' + cirilic_dom);
 
  SaveTo := 'C:/SavedSite/' + dom + '/';
  if (not DirectoryExists(SaveTo)) then CreateDir(SaveTo);
@@ -334,12 +421,8 @@ begin
  links.Add(prot + www + dom + '/');
 
 
-// showmessage (dom); exit;
-
-// Button3.Enabled := false; Button4.Enabled := false; Button6.Enabled := false;
-
  maxThreads := Form3.TrackBar1.Position;
- maxThreads := 1;
+ maxThreads := 3;
  work := true;
 
  tTime := now;
@@ -730,6 +813,7 @@ var
  strl : TStringList;
  tItem, tItem2: TListItem;
  memo:TMemoryStream;
+  quote: string;
 begin
 
 
@@ -917,25 +1001,27 @@ begin
         CS2.Leave;  //******************=========
 
 
- // только сейчас
-
-
-          //    str := copy (str, pos('href="', str)+3, length (str));
-
-          while (pos('href="', str) <> 0)  and (err = '') do
+          while (pos('href=', str) <> 0) do
             begin
-              link := copy (str, pos('href="', str)+6, 1024);
-              link := copy (link, 1, pos('"', link)-1);
+              if (pos('href=', str) <> 0) then
+                begin
+                  link := copy (str, pos('href=', str)+5, 1024);
+                  quote := copy (link, 1, 1);
+                      //  ссылки бывают href="" и   href=''
+                  if (quote = '''') or (quote = '"') then
+                    begin
+                      link := copy (link, 2, 1024);
+                      link := copy (link, 1, pos(quote, link)-1);
+                    end
+                  else   // такие тоже, походу браузер понимает <a href=nabor.php?&page=2>
+                    begin
+                      link := copy (link, 1, pos('>', link)-1);
+                    end;
+                end;
 
-              if pos ('#', link) <> 0 then link := copy (link, 1, pos ('#', link)-1);
 
-              if link = '' then
-                 begin
-                    str := copy (str, pos('href="', str)+3, length (str));
-                    continue;
-                 end;
-                 
-       //      try
+              if (cirilic_dom <> '') and
+                 (pos (cirilic_dom, link) <> 0) then link := stringreplace (link, cirilic_dom, dom, [rfReplaceAll]);
 
                         //   "//link.ru"
               if pos ('//', link) = 1 then link := prot + link;
@@ -964,16 +1050,12 @@ begin
                end;
 
 
-
-//                l := -1; l2 := -1;
-//                l := ;
-//                l2 := ;
-
       //        except showmessage ('Код ошибки: Вот тута 2'); end;
 
              CS4.Enter;  // ====++++++++++++++----------+++++++++
 
              try
+
               if (links.IndexOf(link) = -1) and (links.IndexOf(link + '/') = -1) then
                begin
                      try
@@ -983,19 +1065,17 @@ begin
                       if (pos ('http://'+dom, link) = 1) or (pos ('https://'+dom, link) = 1) or
                          (pos ('http://www.'+dom, link) = 1) or (pos ('https://www.'+dom, link) = 1) then
                        begin
+
                           Item.Caption := link;
                           Item.SubItems.Add('pending');
-                          if link[length(link)] <> '/' then links.Add(link + '/');
                           links.Add(link);
                        end
-                      else
+                      else        // external
                        begin
-//                          if link = '' then link := link + 'empt';
                           Item.Caption := link;
                           Item.SubItems.Add('skip external');
-                          if link[length(link)] <> '/' then links.Add(link + '/');
                           links.Add(link);
- 
+
                        end;
 
                       Item.SubItems.Add ('');   //  тип
@@ -1012,15 +1092,11 @@ begin
 
                end;
 
-               str := copy (str, pos('href="', str)+3, length (str));
-
               except showmessage ('Код ошибки: Вот тута 3'); end;
 
+              str := copy (str, pos('href=', str)+3, length (str));
+
               CS4.Leave;     // ====++++++++++++++----------+++++++++
-
-
-             // form1.memo1.lines.Add(link);
-              str := copy (str, pos('href="', str)+3, length (str));
 
 
             end;   //   конец парса ссылки
@@ -1038,6 +1114,8 @@ begin
 
 
 end;
+
+
 
 procedure Tform1.ReportRequest;
 begin
