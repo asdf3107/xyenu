@@ -2,8 +2,8 @@ object Form1: TForm1
   Left = 0
   Top = 0
   Caption = 'Xyenu'
-  ClientHeight = 637
-  ClientWidth = 1360
+  ClientHeight = 636
+  ClientWidth = 1356
   Color = clBtnFace
   DoubleBuffered = True
   Font.Charset = DEFAULT_CHARSET
@@ -19,8 +19,8 @@ object Form1: TForm1
   object ListView1: TListView
     Left = 0
     Top = 52
-    Width = 1360
-    Height = 562
+    Width = 1356
+    Height = 561
     Align = alClient
     BevelInner = bvSpace
     Columns = <
@@ -87,7 +87,7 @@ object Form1: TForm1
   object Panel1: TPanel
     Left = 0
     Top = 0
-    Width = 1360
+    Width = 1356
     Height = 52
     Align = alTop
     TabOrder = 1
@@ -97,7 +97,7 @@ object Form1: TForm1
       Width = 214
       Height = 21
       TabOrder = 0
-      Text = 'https://xn--80ailajhi0a4e4cm.xn--p1ai/'
+      Text = 'https://luxury-plitka.ru/'
     end
     object Button1: TButton
       Left = 535
@@ -119,7 +119,7 @@ object Form1: TForm1
     end
     object Button3: TButton
       Left = 936
-      Top = 3
+      Top = 25
       Width = 75
       Height = 21
       Caption = 'Save'
@@ -127,8 +127,8 @@ object Form1: TForm1
       OnClick = Button3Click
     end
     object Button4: TButton
-      Left = 960
-      Top = 27
+      Left = 1017
+      Top = 25
       Width = 75
       Height = 21
       Caption = 'Load'
@@ -153,22 +153,13 @@ object Form1: TForm1
       TabOrder = 6
       OnClick = Button7Click
     end
-    object Button9: TButton
-      Left = 1017
-      Top = 1
-      Width = 60
-      Height = 25
-      Caption = 'links save'
-      TabOrder = 7
-      OnClick = Button9Click
-    end
     object Button10: TButton
       Left = 737
       Top = 12
       Width = 75
       Height = 25
       Caption = 'Button10'
-      TabOrder = 8
+      TabOrder = 7
       OnClick = Button10Click
     end
     object ComboBox1: TComboBox
@@ -176,7 +167,7 @@ object Form1: TForm1
       Top = 17
       Width = 161
       Height = 21
-      TabOrder = 9
+      TabOrder = 8
       Text = #1055#1072#1088#1089#1080#1090#1100' '#1089#1072#1081#1090
       Items.Strings = (
         #1055#1072#1088#1089#1080#1090#1100' '#1089#1072#1081#1090
@@ -186,13 +177,13 @@ object Form1: TForm1
   end
   object Panel2: TPanel
     Left = 0
-    Top = 614
-    Width = 1360
+    Top = 613
+    Width = 1356
     Height = 23
     Align = alBottom
     TabOrder = 2
     DesignSize = (
-      1360
+      1356
       23)
     object Label1: TLabel
       Left = 67

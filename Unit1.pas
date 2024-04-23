@@ -49,7 +49,6 @@ type
     Button8: TButton;
     N10: TMenuItem;
     Edit2: TEdit;
-    Button9: TButton;
     Button10: TButton;
     N11: TMenuItem;
     N12: TMenuItem;
@@ -88,7 +87,6 @@ type
     procedure N10Click(Sender: TObject);
     procedure Button8Click(Sender: TObject);
     procedure ListView1Click(Sender: TObject);
-    procedure Button9Click(Sender: TObject);
     procedure Button10Click(Sender: TObject);
     procedure N11Click(Sender: TObject);
     procedure N12Click(Sender: TObject);
@@ -422,7 +420,7 @@ begin
 
 
  maxThreads := Form3.TrackBar1.Position;
- maxThreads := 3;
+ maxThreads := 8;
  work := true;
 
  tTime := now;
@@ -477,7 +475,7 @@ begin
   CloseFile(F);
   listView1.SetFocus;
 
-
+  links.SaveToFile('links.txt');
 end;
 
 
@@ -553,11 +551,6 @@ end;
 procedure TForm1.Button8Click(Sender: TObject);
 begin
  listview1.Items[strtoint (Edit2.text)].Delete;
-end;
-
-procedure TForm1.Button9Click(Sender: TObject);
-begin
-  links.SaveToFile('links.txt');
 end;
 
 procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction);
@@ -869,8 +862,14 @@ begin
             form1.listview1.items[i].SubItems[0] := 'busy';
             url := form1.listview1.items[i].Caption;
 
-            if curUrl = 0 then level := 1 else
+            if (curUrl = 0) or (form1.listview1.items[i].SubItems.Count < 8) then
+              begin
+                 level := 1;
+              end
+            else
+              begin
                 level := strtoint(form1.listview1.items[i].SubItems[7]) + 1;
+              end;
 
             source := url;
 
